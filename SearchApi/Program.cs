@@ -8,10 +8,10 @@ var app = builder.Build();
 
 app.MapGet("/search", async (string? city, int? rating) =>
 {
-    var host = "https://hotels.es.australia-southeast1.gcp.elastic-cloud.com";
-    var userName = "elastic";
-    var password = "PxnPsTFYqveJ7TzYm4rHjdCd";
-    var indexName = "event";
+    var host = Environment.GetEnvironmentVariable("host");
+    var userName = Environment.GetEnvironmentVariable("userName");
+    var password = Environment.GetEnvironmentVariable("password");
+    var indexName = Environment.GetEnvironmentVariable("event");
 
     var conSett = new ConnectionSettings(new Uri(host));
     conSett.BasicAuthentication(userName, password);
