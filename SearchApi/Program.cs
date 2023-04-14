@@ -3,15 +3,25 @@ using SearchApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(b =>
+    {
+        b.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
+var app = builder.Build();
+app.UseCors();
 
 app.MapGet("/search", async (string? city, int? rating) =>
 {
     var host = Environment.GetEnvironmentVariable("host");
     var userName = Environment.GetEnvironmentVariable("userName");
     var password = Environment.GetEnvironmentVariable("password");
-    var indexName = Environment.GetEnvironmentVariable("event");
+    var indexName = Environment.GetEnvironmentVariable("indexName");
 
     var conSett = new ConnectionSettings(new Uri(host));
     conSett.BasicAuthentication(userName, password);
