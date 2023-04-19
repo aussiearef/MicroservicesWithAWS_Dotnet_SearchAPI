@@ -1,6 +1,5 @@
 using System.Net;
-using System.Net.Http.Headers;
-using System.Text.Json;
+using System.Web.Http;
 using Nest;
 using Polly;
 using Polly.CircuitBreaker;
@@ -22,36 +21,33 @@ var app = builder.Build();
 app.UseCors();
 
 
-var circuitBreakerPolicy = Polly.Policy<List<Hotel>>
+var circuitBreakerPolicy = Policy<List<Hotel>>
     .Handle<Exception>()
-    .CircuitBreakerAsync(handledEventsAllowedBeforeBreaking: 3, TimeSpan.FromSeconds(30));
+    .CircuitBreakerAsync(3, TimeSpan.FromSeconds(30));
 
-                           
+
 app.MapGet("/search", async (string? city, int? rating) =>
 {
-    var result = new HttpResponseMessage();
+    var result = new HttpResponseMessage(HttpStatusCode.OK);
     try
     {
-        var hotels = circuitBreakerPolicy.ExecuteAsync(async () => { return await SearchHotels(city, rating); });
-
-        result.StatusCode = HttpStatusCode.OK;
-        result.Content = new StringContent(JsonSerializer.Serialize(hotels));
-        result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-        return result;
+        return await circuitBreakerPolicy.ExecuteAsync(async () => await SearchHotels(city, rating));
     }
     catch (BrokenCircuitException)
     {
-        result.StatusCode = HttpStatusCode.NotAcceptable;
-        result.ReasonPhrase = "Circuit is OPEN.";
+        throw new HttpResponseException(HttpStatusCode.NotAcceptable)
+        {
+            Response =
+            {
+                Content = new StringContent("Circuit is OPEN.")
+            }
+        };
     }
     catch (Exception e)
     {
         Console.WriteLine(e);
         throw;
     }
-
-    return result;
 });
 
 async Task<List<Hotel>> SearchHotels(string? city, int? rating)
@@ -67,7 +63,7 @@ async Task<List<Hotel>> SearchHotels(string? city, int? rating)
     conSett.DefaultMappingFor<Hotel>(m => m.IdProperty(p => p.Id));
     var client = new ElasticClient(conSett);
 
-    if (rating is null) rating = 1;
+    rating ??= 1;
 
     // Match 
     // Prefix 
@@ -92,4 +88,5 @@ async Task<List<Hotel>> SearchHotels(string? city, int? rating)
 
     return result.Hits.Select(x => x.Source).ToList();
 }
+
 app.Run();
