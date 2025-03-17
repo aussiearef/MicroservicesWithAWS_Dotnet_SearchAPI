@@ -2,7 +2,7 @@
 ## The Search API Microservice
 
 
-![Microservices with .NET and AWS ](https://img-b.udemycdn.com/course/750x422/2080118_8bbf_8.jpg "Microservices with .NET and AWS")
+![Microservices with .NET and AWS ](https://github.com/aussiearef/MicroservicesWithAWS_Dotnet_SearchAPI/blob/707f0407d1bdbfcc7dd1e4feb6fd557df473b790/2080118_8bbf_9.png "Microservices with .NET and AWS")
 
 
 
